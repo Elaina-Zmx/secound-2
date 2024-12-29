@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录界面 - ZMX</title>
+    <meta http-equiv="Content-Language" content="zh-CN">
+    <meta name="description" content="用户登录界面，包含用户名、密码和验证码输入">
+    <base href="https://www.zmx.com/">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: url('imgs/雅1.jpg') no-repeat center center fixed;
+            background-size: cover;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(120deg, 
+                rgba(224, 195, 252, 0.7) 0%, 
+                rgba(142, 197, 252, 0.7) 100%
+            );
+            z-index: -1;
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            opacity: 0;
+            animation: fadeIn 1s ease forwards;
+            animation-delay: 2.5s;
+            margin-top: 60px;
+        }
+
+        .login-title {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+            font-size: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #8ec5fc;
+        }
+
+        .captcha-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .captcha-input {
+            flex: 1;
+        }
+
+        .captcha-image {
+            width: 100px;
+            height: 40px;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: #8ec5fc;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .login-btn:hover {
+            background: #7db5eb;
+        }
+
+        .forgot-password {
+            text-align: right;
+            margin-top: 10px;
+        }
+
+        .forgot-password a {
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .forgot-password a:hover {
+            color: #8ec5fc;
+        }
+
+        *:focus {
+            outline: 3px solid #8ec5fc;
+            outline-offset: 2px;
+        }
+
+        .form-group label {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group small {
+            color: #444;
+        }
+
+        .login-btn, 
+        .forgot-password a {
+            padding: 12px 20px;
+            min-height: 44px;
+        }
+
+        /* 开屏动画样式 */
+        .splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(120deg, 
+                rgba(224, 195, 252, 0.95) 0%, 
+                rgba(142, 197, 252, 0.95) 100%
+            );
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+        }
+
+        .splash-screen.fade-out {
+            animation: fadeOut 1s ease forwards;
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+                visibility: visible;
+            }
+            to {
+                opacity: 0;
+                visibility: hidden;
+            }
+        }
+
+        .splash-title {
+            color: white;
+            font-size: 3rem;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        @keyframes slideUp {
+            0% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100%);
+                opacity: 0;
+                visibility: hidden;
+            }
+        }
+
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 修改登录容器的动画 */
+        .login-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            visibility: hidden;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            width: 400px;
+        }
+
+        .login-container.active {
+            transform: translate(-50%, -50%);
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* 添加遮罩层样式 */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.5s ease;
+            z-index: 999;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* 关闭按钮样式 */
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #666;
+            cursor: pointer;
+            padding: 5px;
+            transition: color 0.3s ease;
+        }
+
+        .close-btn:hover {
+            color: #8ec5fc;
+        }
+
+        /* 游戏容器样式 */
+        .game-container {
+            position: fixed;
+            top: 150px;
+            left: 25%;
+            transform: translateX(-50%);
+            width: 35vw;
+            height: 50vh;
+            background: linear-gradient(to bottom, #87CEEB, #E0FFFF);
+            border-radius: 15px;
+            border: 2px solid #8ec5fc;
+            box-shadow: 0 0 20px rgba(142, 197, 252, 0.3);
+            overflow: hidden;
+            z-index: 998;
+        }
+
+        .dino {
+            width: 40px;
+            height: 40px;
+            position: absolute;
+            bottom: 20px;
+            left: 50px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path fill="%234169E1" d="M50,20 C35,20 25,30 25,45 C25,60 35,70 50,70 C65,70 75,60 75,45 C75,30 65,20 50,20 Z M40,40 C42,40 44,42 44,44 C44,46 42,48 40,48 C38,48 36,46 36,44 C36,42 38,40 40,40 Z M60,40 C62,40 64,42 64,44 C64,46 62,48 60,48 C58,48 56,46 56,44 C56,42 58,40 60,40 Z M50,55 C55,55 60,58 60,58 C60,60 55,65 50,65 C45,65 40,60 40,58 C40,58 45,55 50,55 Z"/></svg>') no-repeat center center;
+            background-size: contain;
+            transform-origin: center bottom;
+            transition: transform 0.2s ease;
+        }
+
+        .dino.crouch {
+            transform: scaleY(0.5) translateY(20px);
+        }
+
+        .obstacle {
+            width: 25px;
+            height: 25px;
+            position: absolute;
+            bottom: 20px;
+            right: -25px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path fill="%23FF4500" d="M50,10 L90,90 L10,90 Z"/></svg>') no-repeat center center;
+            background-size: contain;
+            animation: spinObstacle 1s linear infinite;
+        }
+
+        @keyframes spinObstacle {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .gravity-zone {
+            width: 100px;
+            height: 60px;
+            background: linear-gradient(135deg, rgba(142, 197, 252, 0.1), rgba(224, 195, 252, 0.2));
+            border: 2px dashed rgba(142, 197, 252, 0.5);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 12px;
+            box-shadow: inset 0 0 15px rgba(142, 197, 252, 0.2);
+            animation: glowZone 2s ease-in-out infinite;
+        }
+
+        @keyframes glowZone {
+            0%, 100% { box-shadow: inset 0 0 15px rgba(142, 197, 252, 0.2); }
+            50% { box-shadow: inset 0 0 25px rgba(142, 197, 252, 0.4); }
+        }
+
+        .game-score {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 20px;
+            color: #4169E1;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 8px 12px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            font-weight: bold;
+        }
+
+        /* 添加地面样式 */
+        .ground {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 60px;
+            background: linear-gradient(to bottom, #90EE90, #228B22);
+            border-top: 2px solid #228B22;
+        }
+
+        /* 添加云朵装饰 */
+        .cloud {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 20px;
+            animation: floatCloud linear infinite;
+        }
+
+        .cloud:nth-child(1) {
+            width: 60px;
+            height: 25px;
+            top: 15%;
+            animation-duration: 15s;
+        }
+
+        .cloud:nth-child(2) {
+            width: 40px;
+            height: 20px;
+            top: 35%;
+            animation-duration: 12s;
+        }
+
+        @keyframes floatCloud {
+            from { left: 100%; }
+            to { left: -60px; }
+        }
+
+        /* 修改初始按钮容器位置 */
+        .initial-button-container {
+            position: fixed;
+            top: 50%;
+            left: 75%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+        }
+
+        /* 添加引力区域样式 */
+        .gravity-zone {
+            width: 120px;
+            height: 80px;
+            background: rgba(142, 197, 252, 0.2);
+            border: 2px dashed #8ec5fc;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 12px;
+        }
+
+        /* 修改游戏容器的初始状态 */
+        .game-container {
+            /* ... 原有样式保持不变 ... */
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* 修改登录容器的初始状态 */
+        .login-container {
+            /* ... 原有样式保持不变 ... */
+            visibility: hidden;
+            opacity: 0;
+        }
+
+        /* 修改开屏动画样式 */
+        .splash-screen {
+            /* ... 原有样式保持不变 ... */
+            z-index: 3000;
+        }
+
+        /* 确保社区标题始终可见 */
+        .community-title {
+            /* ... 原有样式保持不变 ... */
+            z-index: 1500;
+        }
+
+        /* 修改初始按钮容器样式 */
+        .initial-button-container {
+            /* ... 原有样式保持不变 ... */
+            z-index: 1000;
+        }
+
+        /* 添加游戏开始提示样式 */
+        .game-start-hint {
+            position: absolute;
+            top: 45%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            color: #8ec5fc;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(142, 197, 252, 0.3);
+            animation: pulse 1.5s infinite;
+            z-index: 999;
+        }
+
+        @keyframes pulse {
+            0% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        /* 修改登录按钮容器样式 */
+        .login-trigger-btn {
+            width: 180px;  /* 增加按钮宽度 */
+            height: 180px; /* 增加按钮高度 */
+            padding: 0;    /* 移除内边距 */
+            font-size: 2rem; /* 增大字体 */
+            background: linear-gradient(45deg, 
+                rgba(142, 197, 252, 0.8), 
+                rgba(224, 195, 252, 0.8)
+            );
+            border: none;
+            border-radius: 50%; /* 使按钮变为圆形 */
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            z-index: 1001;
+        }
+
+        /* 添加登录文字样式 */
+        .login-trigger-btn span {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: '楷体', KaiTi, serif;
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .login-trigger-btn:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 修改光效果 */
+        .login-trigger-btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255,255,255,0.4), 
+                transparent
+            );
+            transition: 0.5s;
+        }
+
+        .login-trigger-btn:hover::after {
+            left: 100%;
+        }
+
+        /* 修改标题样式 */
+        .community-title {
+            position: fixed;
+            top: 20px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            z-index: 1500;
+        }
+
+        .community-title h2 {
+            font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+            font-size: 2.8rem;
+            background: linear-gradient(45deg, 
+                #1a1a1a 0%,
+                #4169E1 50%,
+                #000080 100%
+            );
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+            padding: 20px;
+            font-weight: 700;
+            letter-spacing: 6px;
+            animation: titleFloat 3s ease-in-out infinite;
+            position: relative;
+            display: inline-block;
+            filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.3));
+        }
+
+        @keyframes titleFloat {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        /* 简化悬停效果 */
+        .community-title h2:hover {
+            animation-play-state: paused;
+            transform: scale(1.05);
+            transition: transform 0.3s ease;
+            filter: drop-shadow(3px 3px 3px rgba(0, 0, 0, 0.4));
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay"></div>
+    <div class="initial-button-container">
+        <button class="login-trigger-btn">
+            <span>登录</span>
+        </button>
+    </div>
+
+    <!-- 开屏动画 -->
+    <div class="splash-screen">
+        <h1 class="splash-title">WELCOME!BRO</h1>
+    </div>
+
+    <!-- 修改社区标题 -->
+    <div class="community-title">
+        <h2>王林宸的DICK</h2>
+    </div>
+
+    <div class="game-container">
+        <div class="cloud"></div>
+        <div class="cloud"></div>
+        <div class="gravity-zone"></div>
+        <div class="dino"></div>
+        <div class="game-score">得分: <span>0</span></div>
+        <div class="game-start-hint">按空格键开始游戏</div>
+        <div class="ground"></div>
+    </div>
+
+    <div class="login-container" role="main">
+        <button class="close-btn" aria-label="关闭登录窗口">&times;</button>
+        <h1 class="login-title">用户登录</h1>
+        <form id="loginForm" aria-label="登录表单">
+            <div class="form-group">
+                <label for="username" id="username-label">用户名</label>
+                <input type="text" 
+                       id="username" 
+                       name="username" 
+                       placeholder="请输入用户名" 
+                       maxlength="8" 
+                       required
+                       aria-required="true"
+                       aria-labelledby="username-label"
+                       aria-describedby="username-description">
+                <small id="username-description" style="color: #444; font-size: 12px;">用户名最多8个字符</small>
+            </div>
+            <div class="form-group">
+                <label for="password" id="password-label">密码</label>
+                <input type="password" 
+                       id="password" 
+                       name="password" 
+                       placeholder="请输入密码" 
+                       maxlength="12" 
+                       pattern="^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,12}$" 
+                       required
+                       aria-required="true"
+                       aria-labelledby="password-label"
+                       aria-describedby="password-description">
+                <small id="password-description" style="color: #444; font-size: 12px;">密码长度6-12位，必须包含字母和数字</small>
+            </div>
+            <div class="form-group">
+                <label for="captcha" id="captcha-label">验证码</label>
+                <div class="captcha-container">
+                    <input type="text" 
+                           id="captcha" 
+                           name="captcha" 
+                           placeholder="请输入验证码" 
+                           class="captcha-input" 
+                           required
+                           aria-required="true"
+                           aria-labelledby="captcha-label"
+                           aria-describedby="captcha-description">
+                    <canvas id="captchaCanvas" 
+                            width="100" 
+                            height="40" 
+                            style="cursor: pointer;"
+                            role="img"
+                            aria-label="点击刷新验证码"
+                            tabindex="0"></canvas>
+                </div>
+                <small id="captcha-description" style="color: #444; font-size: 12px;">点击图片可刷新验证码</small>
+            </div>
+            <button type="submit" 
+                    class="login-btn"
+                    aria-label="提交登录表单">登录</button>
+            <div class="forgot-password">
+                <a href="password-reset" 
+                   role="link"
+                   aria-label="找回密码">忘记密码？</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // 修改初始化函数
+        function initializeAll() {
+            // 背景图片列表
+            const backgroundImages = [
+                'imgs/雅1.jpg',
+                'imgs/雅2.jpg',
+                'imgs/雅3.jpg',
+                'imgs/雅4.jpg',
+                'imgs/雅5.jpg',
+                'imgs/雅6.jpg'
+            ];
+            
+            // 随机选择一张图片作为背景
+            const randomImage = backgroundImages[Math.floor(Math.random() * backgroundImages.length)];
+            document.body.style.backgroundImage = `url('${randomImage}')`;
+
+            const splashScreen = document.querySelector('.splash-screen');
+            const gameContainer = document.querySelector('.game-container');
+            const loginTriggerBtn = document.querySelector('.login-trigger-btn');
+            const initialButtonContainer = document.querySelector('.initial-button-container');
+            const loginContainer = document.querySelector('.login-container');
+            const overlay = document.querySelector('.overlay');
+            const closeBtn = document.querySelector('.close-btn');
+            
+            // 初始时隐藏登录容器，显示游戏和登录按钮
+            loginContainer.style.visibility = 'hidden';
+            gameContainer.style.visibility = 'hidden';
+            initialButtonContainer.style.visibility = 'hidden';
+
+            // 登录按钮点击事件
+            function showLoginForm() {
+                loginContainer.style.visibility = 'visible';
+                loginContainer.classList.add('active');
+                overlay.classList.add('active');
+                initialButtonContainer.style.display = 'none';
+            }
+
+            function hideLoginForm() {
+                loginContainer.classList.remove('active');
+                overlay.classList.remove('active');
+                initialButtonContainer.style.display = 'block';
+                loginContainer.style.visibility = 'hidden';
+            }
+
+            // 绑定登录相关事件
+            loginTriggerBtn.addEventListener('click', showLoginForm);
+            closeBtn.addEventListener('click', hideLoginForm);
+            overlay.addEventListener('click', hideLoginForm);
+
+            loginContainer.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && loginContainer.classList.contains('active')) {
+                    hideLoginForm();
+                }
+            });
+
+            // 开屏动画
+            setTimeout(() => {
+                splashScreen.classList.add('fade-out');
+                setTimeout(() => {
+                    splashScreen.remove();
+                    // 显示游戏和登录按钮
+                    gameContainer.style.visibility = 'visible';
+                    initialButtonContainer.style.visibility = 'visible';
+                    
+                    // 初始化游戏
+                    initGame();
+                    
+                    // 初始化验证码
+                    initCaptcha();
+                }, 1000);
+            }, 2000);
+        }
+
+        // 页面加载完成后执行初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeAll();
+        });
+
+        // 生成随机验证码
+        function generateCaptcha() {
+            const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            let captcha = '';
+            for (let i = 0; i < 4; i++) {
+                captcha += chars[Math.floor(Math.random() * chars.length)];
+            }
+            return captcha;
+        }
+
+        // 绘制验证码
+        function drawCaptcha(captcha) {
+            const canvas = document.getElementById('captchaCanvas');
+            const ctx = canvas.getContext('2d');
+
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 设置背景
+            ctx.fillStyle = '#f0f0f0';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 绘制干扰线
+            for (let i = 0; i < 3; i++) {
+                ctx.beginPath();
+                ctx.moveTo(Math.random() * canvas.width, Math.random() * canvas.height);
+                ctx.lineTo(Math.random() * canvas.width, Math.random() * canvas.height);
+                ctx.strokeStyle = `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`;
+                ctx.stroke();
+            }
+
+            // 绘制干扰点
+            for (let i = 0; i < 30; i++) {
+                ctx.beginPath();
+                ctx.arc(Math.random() * canvas.width, Math.random() * canvas.height, 1, 0, 2 * Math.PI);
+                ctx.fillStyle = `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`;
+                ctx.fill();
+            }
+
+            // 设置字体
+            ctx.font = 'bold 24px Arial';
+            ctx.textBaseline = 'middle';
+
+            // 计算每个字符的固定宽度
+            const charWidth = canvas.width / (captcha.length + 2); // +2 为了留出左右边距
+            const startX = charWidth; // 起始位置留出一个字符宽度的边距
+
+            // 绘制验证码文字
+            for (let i = 0; i < captcha.length; i++) {
+                // 计算每个字符的x坐标，确保固定间距
+                const x = startX + i * charWidth;
+                // y坐标在中线上下浮动
+                const y = canvas.height / 2 + (Math.random() - 0.5) * 10;
+
+                ctx.save();
+                // 在字符位置进行旋转
+                ctx.translate(x, y);
+                // 限制旋转角度，防止过度倾斜
+                ctx.rotate((Math.random() - 0.5) * 0.2);
+                
+                // 随机颜色，但确保足够深，以保持可读性
+                const r = Math.floor(Math.random() * 100);
+                const g = Math.floor(Math.random() * 100);
+                const b = Math.floor(Math.random() * 100);
+                ctx.fillStyle = `rgb(${r},${g},${b})`;
+                
+                // 绘制字符，x坐标为0是因为已经通过translate移动了坐标系
+                ctx.fillText(captcha[i], 0, 0);
+                ctx.restore();
+            }
+
+            return captcha;
+        }
+
+        // 当前验证码值
+        let currentCaptcha = '';
+
+        // 初始化验证码
+        function initCaptcha() {
+            currentCaptcha = generateCaptcha();
+            drawCaptcha(currentCaptcha);
+        }
+
+        // 点击刷新验证码
+        document.getElementById('captchaCanvas').addEventListener('click', initCaptcha);
+
+        // 页面加载时初始化验证码
+        initCaptcha();
+
+        // 添加键盘操作支持
+        document.getElementById('captchaCanvas').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                initCaptcha();
+            }
+        });
+
+        // 添加错误提示的无障碍支持
+        function showAccessibleError(message) {
+            alert(message);
+            const errorDiv = document.createElement('div');
+            errorDiv.setAttribute('role', 'alert');
+            errorDiv.setAttribute('aria-live', 'polite');
+            errorDiv.textContent = message;
+            document.body.appendChild(errorDiv);
+            setTimeout(() => errorDiv.remove(), 5000);
+        }
+
+        // 修改表单提交处理中的错误提示
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const captcha = document.getElementById('captcha').value;
+            
+            const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,12}$/;
+            
+            if (!passwordRegex.test(password)) {
+                showAccessibleError('密码必须包含字母和数字，长度在6-12位之间！');
+                return;
+            }
+
+            if (captcha.toLowerCase() !== currentCaptcha.toLowerCase()) {
+                showAccessibleError('验证码错误！');
+                initCaptcha();
+                document.getElementById('captcha').value = '';
+                return;
+            }
+            
+            if (username && password && captcha) {
+                showAccessibleError('登录成功！');
+                window.location.href = 'https://www.zmx.com/gallery.html';
+            } else {
+                showAccessibleError('请填写完整的登录信息！');
+            }
+        });
+
+        // 游戏初始化和逻辑
+        function initGame() {
+            const dino = document.querySelector('.dino');
+            const gameContainer = document.querySelector('.game-container');
+            const scoreElement = document.querySelector('.game-score span');
+            const gravityZone = document.querySelector('.gravity-zone');
+            const startHint = document.querySelector('.game-start-hint');
+            
+            let isGameStarted = false;
+            let isJumping = false;
+            let isCrouching = false;
+            let gravity = 0.9;
+            let position = 0;
+            let horizontalPosition = 20;
+            let score = 0;
+            let isGameOver = false;
+            let jumpHeight = 300;
+            let horizontalSpeed = 10;
+            let isInGravityZone = false;
+            let obstacleStartPosition = gameContainer.offsetWidth;
+
+            // 游戏开始函数
+            function startGame() {
+                if (!isGameStarted) {
+                    isGameStarted = true;
+                    startHint.style.display = 'none';
+                    generateObstacles();
+                    gameLoop();
+                }
+            }
+
+            function updateDinoPosition() {
+                dino.style.bottom = position + 'px';
+                dino.style.left = horizontalPosition + 'px';
+            }
+
+            function checkBoundaries() {
+                const containerWidth = gameContainer.offsetWidth;
+                if (horizontalPosition < 0) {
+                    horizontalPosition = 0;
+                } else if (horizontalPosition > containerWidth - 40) {
+                    horizontalPosition = containerWidth - 40;
+                }
+                updateDinoPosition();
+            }
+
+            function checkGravityZone() {
+                const dinoRect = dino.getBoundingClientRect();
+                const zoneRect = gravityZone.getBoundingClientRect();
+
+                isInGravityZone = !(
+                    dinoRect.right < zoneRect.left ||
+                    dinoRect.left > zoneRect.right ||
+                    dinoRect.bottom < zoneRect.top ||
+                    dinoRect.top > zoneRect.bottom
+                );
+
+                if (isInGravityZone && !isJumping) {
+                    position = Math.min(position + 2, 60); // 向上浮力
+                    updateDinoPosition();
+                } else if (!isJumping && !isInGravityZone && position > 0) {
+                    position = Math.max(position - 2, 0); // 重力
+                    updateDinoPosition();
+                }
+            }
+
+            function control(e) {
+                if (!isGameStarted && e.keyCode === 32) { // 空格键
+                    startGame();
+                    return;
+                }
+
+                if (!isGameStarted || isGameOver) return;
+
+                switch(e.keyCode) {
+                    case 38: // 上箭头
+                        if (!isJumping && !isCrouching) {
+                            isJumping = true;
+                            jump();
+                        }
+                        break;
+                    case 40: // 下箭头
+                        if (!isJumping) {
+                            crouch(true);
+                        }
+                        break;
+                    case 37: // 左箭头
+                        horizontalPosition -= horizontalSpeed;
+                        checkBoundaries();
+                        break;
+                    case 39: // 右箭头
+                        horizontalPosition += horizontalSpeed;
+                        checkBoundaries();
+                        break;
+                }
+            }
+
+            function jump() {
+                let velocity = 15;
+                let jumpTimer = setInterval(() => {
+                    if (position >= jumpHeight || !isJumping) {
+                        clearInterval(jumpTimer);
+                        fall();
+                        return;
+                    }
+                    position += velocity;
+                    velocity *= gravity;
+                    updateDinoPosition();
+                }, 20);
+            }
+
+            function fall() {
+                let fallTimer = setInterval(() => {
+                    if (position <= 0) {
+                        clearInterval(fallTimer);
+                        position = 0;
+                        isJumping = false;
+                        updateDinoPosition();
+                        return;
+                    }
+                    position -= 5;
+                    updateDinoPosition();
+                }, 20);
+            }
+
+            function generateObstacles() {
+                if (isGameOver) return;
+                
+                const obstacle = document.createElement('div');
+                obstacle.classList.add('obstacle');
+                gameContainer.appendChild(obstacle);
+
+                let obstaclePosition = obstacleStartPosition;
+                let obstacleTimerId = setInterval(() => {
+                    if (obstaclePosition > -30) {
+                        obstaclePosition -= 5;
+                        obstacle.style.left = obstaclePosition + 'px';
+
+                        // 碰撞检测
+                        const dinoRect = dino.getBoundingClientRect();
+                        const obstacleRect = obstacle.getBoundingClientRect();
+                        
+                        if (checkCollision(dinoRect, obstacleRect)) {
+                            gameOver();
+                        }
+                    } else {
+                        clearInterval(obstacleTimerId);
+                        gameContainer.removeChild(obstacle);
+                        score++;
+                        scoreElement.textContent = score;
+                    }
+                }, 20);
+
+                // 根据分数调整障碍物生成速度
+                const nextObstacleDelay = Math.max(800, 2500 - score * 50);
+                setTimeout(generateObstacles, nextObstacleDelay);
+            }
+
+            function gameOver() {
+                isGameOver = true;
+                isGameStarted = false;
+                const obstacles = document.querySelectorAll('.obstacle');
+                obstacles.forEach(obstacle => {
+                    if (obstacle.parentNode === gameContainer) {
+                        gameContainer.removeChild(obstacle);
+                    }
+                });
+                
+                score = 0;
+                position = 0;
+                horizontalPosition = 20;
+                updateDinoPosition();
+                
+                setTimeout(() => {
+                    isGameOver = false;
+                    scoreElement.textContent = '0';
+                    startHint.style.display = 'block';
+                    startHint.textContent = '游戏结束，按空格键重新开始';
+                }, 1000);
+            }
+
+            // 添加游戏循环
+            function gameLoop() {
+                if (!isGameOver) {
+                    checkGravityZone();
+                    requestAnimationFrame(gameLoop);
+                }
+            }
+
+            // 初始化事件监听
+            document.addEventListener('keydown', control);
+            document.addEventListener('keyup', controlUp);
+            gameLoop();
+            generateObstacles();
+        }
+    </script>
+</body>
+</html>
